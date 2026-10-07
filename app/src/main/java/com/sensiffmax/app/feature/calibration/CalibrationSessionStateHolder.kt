@@ -28,6 +28,9 @@ data class CalibrationSessionResult(
     val precisionScore: Int? get() = precisionResult?.controlScore
     val dragScore: Int? get() = dragResult?.overallScore
 
+    val isComplete: Boolean
+        get() = reactionResult != null && precisionResult != null && dragResult != null
+
     val hasAnyResult: Boolean
         get() = reactionResult != null || precisionResult != null || dragResult != null
 
@@ -73,6 +76,10 @@ data class CalibrationSessionResult(
 object CalibrationSessionStateHolder {
     private val _sessionResult = MutableStateFlow(CalibrationSessionResult())
     val sessionResult: StateFlow<CalibrationSessionResult> = _sessionResult.asStateFlow()
+
+    fun startNewSession() {
+        clear()
+    }
 
     fun updateReaction(result: ReactionTestResult) {
         _sessionResult.value = _sessionResult.value.copy(reactionResult = result)

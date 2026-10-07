@@ -53,7 +53,7 @@ fun CalibrationScreen(
             CyberCard(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    CalibrationSessionStateHolder.clear()
+                    CalibrationSessionStateHolder.startNewSession()
                     onStartCalibration()
                 }
             ) {
@@ -73,7 +73,10 @@ fun CalibrationScreen(
 
             CyberCard(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = onStartPrecision
+                onClick = {
+                    CalibrationSessionStateHolder.startNewSession()
+                    onStartPrecision()
+                }
             ) {
                 CyberSectionHeader(
                     title = "02 PRECISION PROTOCOL",
@@ -91,7 +94,10 @@ fun CalibrationScreen(
 
             CyberCard(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = onStartDrag
+                onClick = {
+                    CalibrationSessionStateHolder.startNewSession()
+                    onStartDrag()
+                }
             ) {
                 CyberSectionHeader(
                     title = "03 DRAG PROTOCOL",
@@ -110,7 +116,7 @@ fun CalibrationScreen(
             CyberButton(
                 text = "START CALIBRATION (REACTION)",
                 onClick = {
-                    CalibrationSessionStateHolder.clear()
+                    CalibrationSessionStateHolder.startNewSession()
                     onStartCalibration()
                 },
                 modifier = Modifier.fillMaxWidth()

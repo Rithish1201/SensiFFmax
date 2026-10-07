@@ -9,7 +9,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -23,14 +22,12 @@ import com.sensiffmax.app.core.ui.theme.CyberColors
 @Composable
 fun CalibrationResultsScreen(
     onNavigateBack: () -> Unit,
-    onGenerateSensitivity: () -> Unit,
+    onContinueToRecommendation: () -> Unit,
+    onRetestCalibration: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LaunchedEffect(Unit) {
-        CalibrationSessionStateHolder.syncFromStateHolders()
-    }
-
     val sessionResult by CalibrationSessionStateHolder.sessionResult.collectAsState()
+    val summary = CalibrationSessionAggregator.summarize(sessionResult)
     val scrollState = rememberScrollState()
 
     Surface(
@@ -70,20 +67,47 @@ fun CalibrationResultsScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // Gauge Card
-            CyberCard(
-                modifier = Modifier.fillMaxWidth(),
-                glowEnabled = true
-            ) {
-                Column(
+            if (summary.hasAllResults) {
+                // Gauge Card
+                CyberCard(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    glowEnabled = true
                 ) {
-                    CyberGauge(
-                        value = (sessionResult.overallScore / 100f).coerceIn(0f, 1f),
-                        label = "OVERALL CALIBRATION SCORE",
-                        displayValue = sessionResult.overallScore.toString()
-                    )
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CyberGauge(
+                            value = ((summary.overallScore ?: 0) / 100f).coerceIn(0f, 1f),
+                            label = "OVERALL CALIBRATION SCORE",
+                            displayValue = summary.overallScore?.toString() ?: "--"
+                        )
+                    }
+                }
+            } else {
+                CyberCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    glowEnabled = true
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "CALIBRATION INCOMPLETE",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = CyberColors.AlertRed,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = summary.summaryText,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = CyberColors.TextSecondary,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
 
@@ -99,23 +123,33 @@ fun CalibrationResultsScreen(
                 ) {
                     CyberStat(
                         label = "REACTION",
-                        value = sessionResult.reactionScore?.toString() ?: "--"
+                        value = summary.reactionScore?.toString() ?: "--"
                     )
                     CyberStat(
                         label = "PRECISION",
-                        value = sessionResult.precisionScore?.toString() ?: "--"
+                        value = summary.precisionScore?.toString() ?: "--"
                     )
                     CyberStat(
                         label = "DRAG",
-                        value = sessionResult.dragScore?.toString() ?: "--"
+                        value = summary.dragScore?.toString() ?: "--"
                     )
                 }
                 Spacer(Modifier.height(12.dp))
-                CyberProgressBar(
-                    progress = (sessionResult.consistencyIndex / 100f).coerceIn(0f, 1f),
-                    label = "CONSISTENCY INDEX",
-                    showPercentage = true
-                )
+                if (summary.consistencyIndex != null) {
+                    CyberProgressBar(
+                        progress = (summary.consistencyIndex / 100f).coerceIn(0f, 1f),
+                        label = "CONSISTENCY INDEX",
+                        showPercentage = true
+                    )
+                } else {
+                    Text(
+                        text = "CONSISTENCY INDEX UNAVAILABLE UNTIL ALL THREE PROTOCOLS ARE COMPLETE",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = CyberColors.TextTertiary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
 
             Spacer(Modifier.height(16.dp))
@@ -131,9 +165,28 @@ fun CalibrationResultsScreen(
 
             Spacer(Modifier.height(20.dp))
 
+            Text(
+                text = summary.summaryText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = CyberColors.TextPrimary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            CyberOutlinedButton(
+                text = "RETEST CALIBRATION",
+                onClick = onRetestCalibration,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(12.dp))
+
             CyberButton(
-                text = "GENERATE SENSITIVITY →",
-                onClick = onGenerateSensitivity,
+                text = "CONTINUE TO RECOMMENDATION →",
+                onClick = onContinueToRecommendation,
+                enabled = summary.hasAllResults,
                 modifier = Modifier.fillMaxWidth()
             )
 

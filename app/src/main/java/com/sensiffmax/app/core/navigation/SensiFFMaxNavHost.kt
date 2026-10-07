@@ -255,7 +255,13 @@ fun SensiFFMaxNavHost(
         composable(Routes.CALIBRATION_RESULTS) {
             CalibrationResultsScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onGenerateSensitivity = { navController.navigate(Routes.SENSITIVITY_RECOMMENDATION) }
+                onContinueToRecommendation = { },
+                onRetestCalibration = {
+                    CalibrationSessionStateHolder.clear()
+                    navController.navigate(Routes.REACTION_TEST) {
+                        popUpTo(Routes.CALIBRATION_RESULTS) { inclusive = true }
+                    }
+                }
             )
         }
 
